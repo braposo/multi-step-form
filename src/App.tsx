@@ -1,5 +1,4 @@
 import * as React from "react";
-import { MultiStepForm } from "./types";
 import {
      Flex,
      View,
@@ -10,42 +9,9 @@ import {
      Button,
      Text,
 } from "@adobe/react-spectrum";
-import { ViewProps } from "@react-types/view";
 import Checkmark from "@spectrum-icons/workflow/Checkmark";
-
-type StepHeaderProps = {
-     label: string;
-     id?: string;
-     variant?: "default" | "active" | "valid" | "invalid" | "disabled";
-};
-
-function StepHeader({
-     id,
-     label,
-     variant = "default",
-}: StepHeaderProps): JSX.Element {
-     const mapExtraPropsToVariant: { [key in typeof variant]: ViewProps } = {
-          default: { borderColor: "gray-100" },
-          active: { borderColor: "blue-600" },
-          valid: { borderColor: "green-600" },
-          invalid: { borderColor: "red-600" },
-          disabled: { borderColor: "gray-100" },
-     };
-
-     return (
-          <View
-               backgroundColor="gray-100"
-               paddingX="size-200"
-               borderStartWidth="thick"
-               flexGrow={1}
-               {...mapExtraPropsToVariant[variant]}
-          >
-               <Heading id={id} level={3}>
-                    {label}
-               </Heading>
-          </View>
-     );
-}
+import { StepHeader } from "./components/StepHeader";
+import { StepContent } from "./components/StepContent";
 
 export default function App() {
      return (
@@ -53,12 +19,10 @@ export default function App() {
                <Heading level={1}>Multi step form example</Heading>
                <Flex direction="column" gap="size-100" maxWidth="size-5000">
                     <Flex direction="column">
-                         <StepHeader
-                              id="step1-header"
-                              label="1. User"
-                              variant="active"
-                         />
-                         <View paddingBottom="size-200" paddingX="size-200">
+                         <StepHeader id="step1-header" variant="active">
+                              1. Add details
+                         </StepHeader>
+                         <StepContent>
                               <Form
                                    aria-labelledby="step1-header"
                                    necessityIndicator="icon"
@@ -93,14 +57,12 @@ export default function App() {
                                         </Button>
                                    </View>
                               </Form>
-                         </View>
+                         </StepContent>
                     </Flex>
                     <Flex direction="column" gap="size-100">
-                         <StepHeader
-                              id="step2-header"
-                              label="2. Privacy"
-                              variant="disabled"
-                         />
+                         <StepHeader id="step2-header" variant="disabled">
+                              2. Choose communications
+                         </StepHeader>
                          <View paddingBottom="size-200" paddingX="size-200">
                               <Form
                                    aria-labelledby="step2-header"
@@ -127,10 +89,9 @@ export default function App() {
                          </View>
                     </Flex>
                     <Flex direction="column" gap="size-100">
-                         <StepHeader
-                              label="3. Verify email"
-                              variant="disabled"
-                         />
+                         <StepHeader variant="disabled">
+                              3. Verify email
+                         </StepHeader>
                          <View paddingBottom="size-200" paddingX="size-200">
                               <Flex alignItems="center" gap="size-200">
                                    <Checkmark size="XXL" />
