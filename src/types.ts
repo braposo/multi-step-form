@@ -1,13 +1,12 @@
 type Field = {
      id: string;
-     type: "text";
+     type: "text" | "email" | "password" | "checkbox";
      isRequired?: boolean;
      validation?: Function;
 };
 
 type Step = {
      id: string;
-     label: string;
      fields?: Field[];
 };
 
