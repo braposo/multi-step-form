@@ -22,16 +22,16 @@ See ya!
 
 This session was all about the state and most of the interactivity that is expected in this exercise.
 
-Like I mentioned in the previous session, I opted to use xstate as the state management library just because it's a mental model that I like and it's very handy for these kind of interfaces that have a sequence of steps and need some sort of validation.
+Like I mentioned in the previous session, I opted to use xstate as the state management library just because it's a mental model that I like and it's very handy for these kinds of interfaces that have a sequence of steps and need some sort of validation.
 
 I know that you're using redux, but for me xstate has some advantages over it, while keeping a very similar flow in a React app. The way that the machine was setup at this point is very similar to redux where the context has all the data for the form (as a redux store would) and there are a few events that are dispatched from the different components (as redux actions would). What I like about xstate is that we can attach actions to the events in the machine that update the context just like the reducer would in redux, but in a much more explicit and logical way in my opinion.
 
-Another thing that I ended up using already is the transition guards that can be associated to each event so they only happen if a given condition is met, which is very helpful when we're dealing with a multi-step form with validation.
+Another thing that I ended up using already is the transition guards that can be associated with each event so they only happen if a given condition is met, which is very helpful when we're dealing with a multi-step form with validation.
 
-For now I created a really basic machine with just 3 states but to be honest only one of them is actually used. I didn't focus in the form validation at all so that will be the focus of my next session.
+For now I created a really basic machine with just 3 states but to be honest only one of them is actually used. I didn't focus on the form validation at all so that will be the focus of my next session.
 
-One thing that I added as well was a kind of end-to-end test for the app. Because we already have the UI components from last session and the state managemente from this session, we actually have a fully functional form that can be tested. For that I'm using react-testing-library and the user-event extension which allows me to simulate how the users would interact with the form with just the keyboard for example so we can check how accessible it is.
+One thing that I added as well was a kind of end-to-end test for the app. Because we already have the UI components from last session and the state management from this session, we actually have a fully functional form that can be tested. For that I'm using react-testing-library and the user-event extension which allows me to simulate how the users would interact with the form with just the keyboard for example so we can check how accessible it is.
 
-This end-to-end test ended up highlighting one of the main selling points fo the react-spectrum library as it performed really well on a keyboard-only navigation. It will also help with the refactoring that may exist later on so we are always sure that the app is working as expected.
+This end-to-end test ended up highlighting one of the main selling points of the react-spectrum library as it performed really well on a keyboard-only navigation. It will also help with the refactoring that may exist later on so we are always sure that the app is working as expected.
 
 So for the next session I'll take care of the validation of the form!
