@@ -12,27 +12,60 @@ import {
 import Checkmark from "@spectrum-icons/workflow/Checkmark";
 import { StepHeader } from "./components/StepHeader";
 import { StepContent } from "./components/StepContent";
-import { multiStepFormMachine } from "./state";
+import {
+     multiStepFormMachine,
+     FormContext,
+     FormEvents,
+     FormSchema,
+     Field,
+} from "./utils/state";
 import { useMachine } from "@xstate/react";
+import { StateMachine } from "xstate";
 
-export default function App() {
+type Props = {
+     machine?: StateMachine<FormContext, FormSchema, FormEvents>;
+};
+
+export default function App({ machine = multiStepFormMachine }: Props) {
      const [state, send] = useMachine(multiStepFormMachine);
      const { currentStep, name, email, role, password } = state.context;
+
+     const showErrors = state.matches("invalid");
+     const getValidationProps = (field: Field) =>
+          showErrors
+               ? ({
+                      validationState:
+                           (state.context.errors[field] || []).length === 0
+                                ? "valid"
+                                : "invalid",
+                 } as const)
+               : {};
+
+     const step1Variant =
+          currentStep === 1
+               ? state.matches("invalid")
+                    ? "invalid"
+                    : "active"
+               : "valid";
+     const step2Variant =
+          currentStep === 2
+               ? state.matches("invalid")
+                    ? "invalid"
+                    : "active"
+               : currentStep > 2
+               ? "valid"
+               : "default";
+
      return (
           <Flex direction="column" gap="size-100">
                <Heading level={1}>Multi step form example</Heading>
-               <Flex direction="column" gap="size-100" maxWidth="size-5000">
+               <Flex
+                    direction="column"
+                    gap="size-100"
+                    maxWidth="static-size-6000"
+               >
                     <Flex direction="column">
-                         <StepHeader
-                              id="step1-header"
-                              variant={
-                                   currentStep === 1
-                                        ? state.matches("invalid")
-                                             ? "invalid"
-                                             : "active"
-                                        : "default"
-                              }
-                         >
+                         <StepHeader id="step1-header" variant={step1Variant}>
                               1. Add details
                          </StepHeader>
                          <StepContent isHidden={currentStep !== 1}>
@@ -53,6 +86,7 @@ export default function App() {
                                                   value,
                                              })
                                         }
+                                        {...getValidationProps("name")}
                                    />
                                    <TextField
                                         label="Role:"
@@ -65,6 +99,7 @@ export default function App() {
                                                   value,
                                              })
                                         }
+                                        {...getValidationProps("role")}
                                    />
                                    <TextField
                                         label="Email:"
@@ -79,6 +114,7 @@ export default function App() {
                                                   value,
                                              })
                                         }
+                                        {...getValidationProps("email")}
                                    />
                                    <TextField
                                         value={password}
@@ -92,6 +128,7 @@ export default function App() {
                                                   value,
                                              })
                                         }
+                                        {...getValidationProps("password")}
                                    />
                                    <View marginTop="size-200">
                                         <Button
@@ -107,10 +144,7 @@ export default function App() {
                          </StepContent>
                     </Flex>
                     <Flex direction="column" gap="size-100">
-                         <StepHeader
-                              id="step2-header"
-                              variant={currentStep === 2 ? "active" : "default"}
-                         >
+                         <StepHeader id="step2-header" variant={step2Variant}>
                               2. Choose communications
                          </StepHeader>
                          <StepContent isHidden={currentStep !== 2}>
@@ -119,6 +153,9 @@ export default function App() {
                                    necessityIndicator="icon"
                               >
                                    <Checkbox
+                                        isSelected={
+                                             state.context.productUpdates
+                                        }
                                         onChange={value =>
                                              send({
                                                   type: "CHANGE_VALUE",
@@ -131,6 +168,7 @@ export default function App() {
                                         by email
                                    </Checkbox>
                                    <Checkbox
+                                        isSelected={state.context.otherUpdates}
                                         onChange={value =>
                                              send({
                                                   type: "CHANGE_VALUE",
@@ -170,7 +208,7 @@ export default function App() {
                     </Flex>
                     <Flex direction="column" gap="size-100">
                          <StepHeader
-                              variant={currentStep === 3 ? "active" : "default"}
+                              variant={currentStep === 3 ? "valid" : "default"}
                          >
                               3. Verify email
                          </StepHeader>
