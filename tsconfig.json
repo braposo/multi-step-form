@@ -1,0 +1,14 @@
+{
+    "include": [
+        "./src/*"
+    ],
+    "compilerOptions": {
+        "strict": true,
+        "esModuleInterop": true,
+        "lib": [
+            "es2017",
+            "dom"
+        ],
+        "jsx": "react"
+    }
+}

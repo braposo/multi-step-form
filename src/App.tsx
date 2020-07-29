@@ -18,7 +18,7 @@ import {
      FormEvents,
      FormSchema,
      Field,
-} from "./utils/state";
+} from "./state/form";
 import { useMachine } from "@xstate/react";
 import { StateMachine } from "xstate";
 
