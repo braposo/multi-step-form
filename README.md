@@ -62,4 +62,10 @@ This refactor also includes some UX improvements like disabling the form while i
 
 Overall this refactor was mostly to give additional talking points for further discussions and show different ways of achieving the same tasks. I actually started it with something else in mind, more focused on the state machine, but then realised it was just becoming too complex and didn't really bring much benefit to the discussion as it would just show some advanced uses of xstate so ended up dropping all of that and focusing on the React/UX improvements instead. It's still [in a PR](https://github.com/braposo/multi-step-form/pull/2) if you want to have a look although it's a very incomplete solution as I dropped it at some point.
 
+# Running this locally
+
+This is a normal create-react-app so you can clone this repo or download the files and run `yarn` followed by `yarn start`.
+
+To run the tests please run `yarn test`.
+
 Hopefully you'll find this refactor useful as well!
