@@ -49,3 +49,17 @@ This means that at this point we have a fully functional multi-step form that ma
 But although this is enough for this task, I'd like to take the opportunity to do a final session to bring this closer to a production setup, one that tries to answer the extra questions that you also ask in the test. How can we extend the form, add new fields or have a better UX by showing better information about the validation errors for example?
 
 I'll try to answer those questions in the next session!
+
+## Session 4 - The Refactor (4h)
+
+The last session was to do some refactoring on the existing code. This is completely out of scope and way over what was required for the test but I wanted to use a few different concepts in React, like the use of context, component API design and data flow.
+
+Also made updates to the state model so it's a bit more in line with a real-case scenario. The initial solution worked fine for this test, but was too simplistic and didn't have things like handling form submission or restricting the events in specific states, which is one of the main advantages of statecharts.
+
+The new model probably requires a bit more work to extend but that's a good trade-off in my opinion as the state flow is much more explicit. You can check how it behaves in [this visualisation](https://xstate.js.org/viz/?gist=5570869f6d360fcd91e67fb5321e127c).
+
+This refactor also includes some UX improvements like disabling the form while is submitting the data, the error messages that are now shown if a given field is invalid and the instant feedback on the validation after the first submission. I've added a simple test for the validation as well just to make sure that the UI is updating correctly after an invalid submission.
+
+Overall this refactor was mostly to give additional talking points for further discussions and show different ways of achieving the same tasks. I actually started it with something else in mind, more focused on the state machine, but then realised it was just becoming too complex and didn't really bring much benefit to the discussion as it would just show some advanced uses of xstate so ended up dropping all of that and focusing on the React/UX improvements instead. It's still [in a PR](https://github.com/braposo/multi-step-form/pull/2) if you want to have a look although it's a very incomplete solution as I dropped it at some point.
+
+Hopefully you'll find this refactor useful as well!
