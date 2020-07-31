@@ -1,26 +1,46 @@
-import { Machine, assign, actions } from "xstate";
+import { Machine, actions } from "xstate";
+import { assign } from "@xstate/immer";
 import { checkIf } from "./validation";
 
 export type FormSchema = {
      states: {
-          active: {};
-          invalid: {};
-          submitted: {};
+          step1: {
+               states: {
+                    active: {};
+                    invalid: {};
+                    submitting: {};
+                    error: {};
+               };
+          };
+          step2: {
+               states: {
+                    active: {};
+                    invalid: {};
+                    submitting: {};
+                    error: {};
+               };
+          };
+          completed: {};
      };
 };
 
-export type FormContext = {
-     currentStep: number;
-     name: string;
-     role: string;
-     email: string;
-     password: string;
-     productUpdates: boolean;
-     otherUpdates: boolean;
-     errors: Partial<Record<Field, string[]>>;
+export type FieldDef = {
+     value: string | boolean;
+     errors?: (str: string) => string[];
 };
 
-export type Field = Exclude<keyof FormContext, "errors" | "currentStep">;
+export type FormContext = {
+     fields: {
+          name: FieldDef;
+          role: FieldDef;
+          email: FieldDef;
+          password: FieldDef;
+          productUpdates: FieldDef;
+          otherUpdates: FieldDef;
+     };
+};
+
+type Field = keyof FormContext["fields"];
 
 export type FormEvents =
      | {
@@ -31,127 +51,155 @@ export type FormEvents =
      | { type: "SUBMIT" }
      | { type: "GO_BACK" };
 
-const updateErrors = (field: Field, value: string | boolean) => {
-     const mapFieldToValidation: Partial<Record<Field, string[]>> = {
-          name: checkIf(String(value))
-               .hasMinLength(1, "can't be blank")
-               .hasErrors(),
-          email: checkIf(String(value))
-               .isEmail()
-               .hasErrors(),
-          password: checkIf(String(value))
-               .hasMinLength(9)
-               .hasDigit()
-               .hasUpperCase()
-               .hasLowerCase()
-               .hasErrors(),
-     };
-
-     const errors = mapFieldToValidation[field];
-
-     return errors ? errors : [];
-};
-
 export const multiStepFormMachine = Machine<
      FormContext,
      FormSchema,
      FormEvents
 >(
      {
-          initial: "active",
+          initial: "step1",
           context: {
-               currentStep: 1,
-               name: "",
-               role: "",
-               email: "",
-               password: "",
-               productUpdates: false,
-               otherUpdates: false,
-               errors: {
-                    name: updateErrors("name", ""),
-                    email: updateErrors("email", ""),
-                    password: updateErrors("password", ""),
+               fields: {
+                    name: {
+                         value: "",
+                         errors: str =>
+                              checkIf(str)
+                                   .hasMinLength(1, "can't be blank")
+                                   .hasErrors(),
+                    },
+                    role: {
+                         value: "",
+                    },
+                    email: {
+                         value: "",
+                         errors: str =>
+                              checkIf(str)
+                                   .isEmail()
+                                   .hasErrors(),
+                    },
+                    password: {
+                         value: "",
+                         errors: str =>
+                              checkIf(str)
+                                   .hasMinLength(9)
+                                   .hasDigit()
+                                   .hasUpperCase()
+                                   .hasLowerCase()
+                                   .hasErrors(),
+                    },
+                    productUpdates: {
+                         value: false,
+                    },
+                    otherUpdates: {
+                         value: false,
+                    },
                },
           },
           states: {
-               active: {},
-               invalid: {},
-               submitted: {
+               step1: {
+                    id: "step1",
+                    initial: "active",
+                    states: {
+                         active: {},
+                         invalid: {},
+                         submitting: {
+                              invoke: {
+                                   src: "fakeService",
+                                   onDone: {
+                                        target: "#step2",
+                                   },
+                                   onError: {
+                                        target: "error",
+                                   },
+                              },
+                         },
+                         error: {},
+                    },
+                    on: {
+                         CHANGE_VALUE: {
+                              actions: ["saveValue"],
+                         },
+                         SUBMIT: [
+                              {
+                                   target: ".invalid",
+                                   cond: "isStep1Invalid",
+                              },
+                              {
+                                   target: ".submitting",
+                              },
+                         ],
+                    },
+               },
+               step2: {
+                    id: "step2",
+                    initial: "active",
+                    states: {
+                         active: {},
+                         invalid: {},
+                         submitting: {
+                              invoke: {
+                                   src: "fakeService",
+                                   onDone: {
+                                        target: "#completed",
+                                   },
+                                   onError: {
+                                        target: "error",
+                                   },
+                              },
+                         },
+                         error: {},
+                    },
+                    on: {
+                         CHANGE_VALUE: {
+                              actions: ["saveValue"],
+                         },
+                         GO_BACK: {
+                              target: "#step1",
+                         },
+                         SUBMIT: [
+                              {
+                                   target: ".invalid",
+                                   cond: "isStep2Invalid",
+                              },
+                              {
+                                   target: ".submitting",
+                              },
+                         ],
+                    },
+               },
+               completed: {
+                    id: "completed",
+                    entry: "logForm",
                     type: "final",
                },
           },
-          on: {
-               CHANGE_VALUE: {
-                    target: "active",
-                    actions: ["saveValue"],
-               },
-               GO_BACK: {
-                    target: "active",
-                    actions: ["goToPreviousStep"],
-                    cond: "canGoBack",
-               },
-               SUBMIT: [
-                    {
-                         target: "invalid",
-                         cond: "checkIfInvalid",
-                    },
-                    {
-                         target: "submitted",
-                         actions: ["goToNextStep", "submitForm"],
-                         cond: "isReadyToSubmit",
-                    },
-                    {
-                         target: "active",
-                         actions: ["goToNextStep"],
-                    },
-               ],
-          },
      },
      {
+          services: {
+               fakeService: () =>
+                    new Promise(resolve => setTimeout(() => resolve(), 2000)),
+          },
           actions: {
-               saveValue: assign((ctx, event) => {
+               saveValue: assign((ctx, event: FormEvents) => {
                     if ("field" in event) {
-                         return {
-                              [event.field]: event.value,
-                              errors: {
-                                   ...ctx.errors,
-                                   [event.field]: updateErrors(
-                                        event.field,
-                                        event.value
-                                   ),
-                              },
-                         };
+                         ctx.fields[event.field].value = event.value;
                     }
-
-                    return ctx;
                }),
-               goToNextStep: assign({
-                    currentStep: ctx => ctx.currentStep + 1,
-               }),
-               goToPreviousStep: assign({
-                    currentStep: ctx => ctx.currentStep - 1,
-               }),
-               submitForm: actions.log(ctx => {
-                    const { currentStep, ...fields } = ctx;
-                    return fields;
-               }, "Submitted data"),
+               logForm: actions.log(ctx => ctx.fields, "Submitted data"),
           },
           guards: {
-               checkIfInvalid: ctx => {
-                    if (ctx.currentStep === 1) {
-                         const invalidName = (ctx.errors.name || []).length > 0;
-                         const invalidEmail =
-                              (ctx.errors.email || []).length > 0;
-                         const invalidPassword =
-                              (ctx.errors.password || []).length > 0;
+               isStep1Invalid: ctx => {
+                    const { name, email, password } = ctx.fields;
+                    const nameInvalid =
+                         name.errors(String(name.value)).length > 0;
+                    const emailInvalid =
+                         email.errors(String(email.value)).length > 0;
+                    const passwordInvalid =
+                         password.errors(String(password.value)).length > 0;
 
-                         return invalidName || invalidEmail || invalidPassword;
-                    }
-
-                    return false;
+                    return nameInvalid || emailInvalid || passwordInvalid;
                },
-               isReadyToSubmit: ctx => ctx.currentStep + 1 === 3,
-               canGoBack: ctx => ctx.currentStep > 1,
+               isStep2Invalid: ctx => false,
           },
      }
 );
